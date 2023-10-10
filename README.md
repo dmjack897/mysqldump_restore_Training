@@ -133,3 +133,13 @@ MacBook-Pro-5:mysql_study simdongmok$ ls -lh backup.sh_20231011.log
 ```
 
 결론 : -d옵션을 이용해서 table의 구조만을 backup하는 방식이 확실히 빠르긴 하지만 백업시 데이터의 복구가 안되기 때문에 이러한 단점을 보안할 방법을 더 생각해 봐야 할것 같습니다.
+
+4.데이터만을 백업
+
+```
+///person table의 데이터를 백업한다. 데이터 구분은 '|'를 이용한다
+select *
+into outfile '/Users/simdongmok/Desktop/study/mysql_study/person.data'
+fields terminated by '|'
+from person;
+```
