@@ -53,13 +53,81 @@ mysql> select count(*) from person;
 ```
 
 총 3가지 패턴의 backup을 진행해보고 비교해보겠습니다.
+확실한 시간 조사를 위해 짧은 shell script를 작성해서 실행했습니다.
 
 1. sim DB를 backup
 - mysqldump -u root -p sim > total.db
+- 총 16초의 시간이 걸렸습니다.
+```
+#!/bin/sh
+LOG="./`basename $0`_`date "+%Y%m%d"`.log"
+{
+    echo "start:"`date`
+    mysqldump -u root -p -A > total_backup.db
+    echo "end:"`date`
+} 2>&1 | 
+while read msg;
+do
+    echo "$msg" >> ${LOG}
+done
+
+///결과
+MacBook-Pro-5:mysql_study simdongmok$ cat backup.sh_20231011.log
+start:2023年 10月11日 水曜日 06時37分42秒 JST
+end:2023年 10月11日 水曜日 06時37分58秒 JST
+
+MacBook-Pro-5:mysql_study simdongmok$ ls -lh total_backup.db
+-rw-r--r--  1 simdongmok  staff   452M 10 11 06:37 total_backup.db
+
+```
 
 2. sim DB의 person table만 backup
 - mysqldump -u root -p school student > total.db
+- 총 15초의 시간이 걸렸습니다.
+```
+#!/bin/sh
+LOG="./`basename $0`_`date "+%Y%m%d"`.log"
+{
+    echo "start:"`date`
+    mysqldump -u root -p sim person > table_backup.db
+    echo "end:"`date`
+} 2>&1 | 
+while read msg;
+do
+    echo "$msg" > ${LOG}
+done
+
+///결과
+MacBook-Pro-5:mysql_study simdongmok$ cat backup.sh_20231011.log 
+start:2023年 10月11日 水曜日 06時45分58秒 JST
+end:2023年 10月11日 水曜日 06時46分13秒 JST
+
+MacBook-Pro-5:mysql_study simdongmok$ ls -lh backup.sh_20231011.log 
+-rw-r--r--  1 simdongmok  staff   108B 10 11 06:46 backup.sh_20231011.log
+MacBook-Pro-5:mysql_study simdongmok$ 
+```
 
 3. sim DB의 table 구조만 backup
 - mysqldump -u root -p -d sim > total.db
+- 총 2초의 시간이 걸렸습니다.
+```
+#!/bin/sh
+LOG="./`basename $0`_`date "+%Y%m%d"`.log"
+{
+    echo "start:"`date`
+    mysqldump -u root -p -d sim > structure_backup.db    
+    echo "end:"`date`
+} 2>&1 | 
+while read msg;
+do
+    echo "$msg" >> ${LOG}
+done
 
+///결과
+MacBook-Pro-5:mysql_study simdongmok$ cat backup.sh_20231011.log
+start:2023年 10月11日 水曜日 06時51分14秒 JST
+end:2023年 10月11日 水曜日 06時51分16秒 JST
+
+MacBook-Pro-5:mysql_study simdongmok$ ls -lh backup.sh_20231011.log
+-rw-r--r--  1 simdongmok  staff   108B 10 11 06:51 backup.sh_20231011.log
+```
