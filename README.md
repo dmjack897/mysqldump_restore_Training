@@ -176,7 +176,7 @@ MacBook-Pro-5:mysql_study simdongmok$ cat restore.sh_20231011.log
 start:2023年 10月11日 水曜日 19時36分52秒 JST
 end:2023年 10月11日 水曜日 19時37分55秒 JST
 ```
-복구후 데이터 확인입니다.
+복구 후 데이터 확인입니다.
 ```
 mysql> show tables;
 +---------------+
