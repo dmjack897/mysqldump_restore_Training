@@ -52,6 +52,8 @@ mysql> select count(*) from person;
 1 row in set (1.38 sec)
 ```
 
+##백업_TEST
+
 총 3가지 패턴의 backup을 진행해보고 비교해보겠습니다.
 확실한 시간 조사를 위해 짧은 shell script를 작성해서 실행했습니다.
 
@@ -134,12 +136,69 @@ MacBook-Pro-5:mysql_study simdongmok$ ls -lh backup.sh_20231011.log
 
 결론 : -d옵션을 이용해서 table의 구조만을 backup하는 방식이 확실히 빠르긴 하지만 백업시 데이터의 복구가 안되기 때문에 이러한 단점을 보안할 방법을 더 생각해 봐야 할것 같습니다.
 
-4.데이터만을 백업
+##복구_TEST
 
+우선 backup한 데이터를 삭제하겠습니다.
 ```
-///person table의 데이터를 백업한다. 데이터 구분은 '|'를 이용한다
-select *
-into outfile '/Users/simdongmok/Desktop/study/mysql_study/person.data'
-fields terminated by '|'
-from person;
+mysql> use sim
+Database changed
+mysql> show tables;
++---------------+
+| Tables_in_sim |
++---------------+
+| person        |
++---------------+
+1 row in set (0.02 sec)
+
+mysql> drop table person;
+Query OK, 0 rows affected (0.32 sec)
+
+mysql> show tables;
+Empty set (0.00 sec)
 ```
+
+아래 script를 통해 백업을 실행하겠습니다.
+```
+#!/bin/sh
+LOG="./`basename $0`_`date "+%Y%m%d"`.log"
+{
+    echo "start:"`date`
+    mysql -u root -p sim < table_backup.db
+    echo "end:"`date`
+} 2>&1 | 
+while read msg;
+do
+    echo "$msg" >> ${LOG}
+done
+
+///결과
+MacBook-Pro-5:mysql_study simdongmok$ cat restore.sh_20231011.log
+start:2023年 10月11日 水曜日 19時36分52秒 JST
+end:2023年 10月11日 水曜日 19時37分55秒 JST
+```
+복구후 데이터 확인입니다.
+```
+mysql> show tables;
++---------------+
+| Tables_in_sim |
++---------------+
+| person        |
++---------------+
+1 row in set (0.00 sec)
+
+mysql> select count(*) from person;
++----------+
+| count(*) |
++----------+
+|  5000000 |
++----------+
+1 row in set (1.02 sec)
+
+mysql> 
+```
+총 복구에 1분3초의 시간이 걸렸습니다.
+
+##결론
+5000000개 데이터가 있는 table하나 복구에 1분 3초의 시간이 소요되었습니다. 
+더 많은 데이터를 생성해보고 한번더 실행해 볼 필요가 있다고 생각이 들었습니다. 
+또한 시간에 중점을 둔 다른 백업 복구 방식에 대해서 조사 할 필요가 있다고 생각합니다.
